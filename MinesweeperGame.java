@@ -1,6 +1,7 @@
 package com.javarush.games.minesweeper;
 
 import com.javarush.engine.cell.*;
+import java.util.ArrayList;
 
 public class MinesweeperGame extends Game {
     private static final int SIDE = 9;
@@ -31,14 +32,34 @@ public class MinesweeperGame extends Game {
         countMineNeighbors();
     }
 
-    public void getNeighbors(GameObject gameObject) {
-
+    public ArrayList<GameObject> getNeighbors(GameObject gameObject) {
+        ArrayList<GameObject> neighbors = new ArrayList<>();
+        for (int x = -1; x < 2; x++) {
+            for (int y = -1; y < 2; y++) {
+                try {
+                    if (!(gameField[gameObject.y + y][gameObject.x + x]).equals(gameObject)) {
+                        neighbors.add(gameField[gameObject.y + y][gameObject.x + x]);
+                    }
+                }catch (IndexOutOfBoundsException ex) {
+                }
+            }
+        }
+        return neighbors;
     }
 
     private void countMineNeighbors() {
+        ArrayList<GameObject> mineNeighbors = new ArrayList<>();
         for (int x = 0; x < gameField.length; x++) {
             for (int y = 0; y < gameField.length; y++) {
-                getNeighbors(gameField[y][x]);
+                if (!gameField[y][x].isMine) {
+                    mineNeighbors.addAll(getNeighbors(gameField[y][x]));
+                    for (GameObject neighbor : mineNeighbors) {
+                        if (neighbor.isMine) {
+                            gameField[y][x].countMineNeighbors++;
+                        }
+                    }
+                    mineNeighbors.clear();
+                }
             }
         }
     }
