@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 public class MinesweeperGame extends Game {
     private static final int SIDE = 9;
+    private static final String MINE = "\uD83D\uDCA3";
     private int countMinesOnField;
     private GameObject[][] gameField = new GameObject[SIDE][SIDE];
 
@@ -62,5 +63,21 @@ public class MinesweeperGame extends Game {
                 }
             }
         }
+    }
+
+    private void openTile(int x, int y) {
+        gameField[y][x].isOpen = true;
+        if (gameField[y][x].isMine) {
+            setCellColor(x, y, Color.RED);
+            setCellValue(x, y, MINE);
+        } else {
+            setCellNumber(x, y, gameField[y][x].countMineNeighbors);
+            setCellColor(x, y, Color.GREEN);
+        }
+    }
+
+    @Override
+    public void onMouseLeftClick(int x, int y) {
+        openTile(x, y);
     }
 }
