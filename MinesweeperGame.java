@@ -4,43 +4,53 @@ import com.javarush.engine.cell.*;
 import java.util.ArrayList;
 
 public class MinesweeperGame extends Game {
-    private static final int SIDE = 9;
     private static final String MINE = "\uD83D\uDCA3";
     private static final String FLAG = "\uD83D\uDEA9";
+    private GameObject[][] gameField;
+    private boolean isGameStopped;
+    private int SIDE;
     private int countMinesOnField;
     private int countFlags;
-    private int score = 0;
-    private int countClosedTiles = SIDE * SIDE;
-    private boolean isGameStopped;
-    private GameObject[][] gameField = new GameObject[SIDE][SIDE];
+    private int score;
+    private int countClosedTiles;
+
 
     @Override
     public void initialize() {
+        SIDE = 9;
         setScreenSize(SIDE, SIDE);
+        gameField = new GameObject[SIDE][SIDE];
+        countClosedTiles = SIDE * SIDE;
+        score = 0;
         createGame();
     }
 
     private void createGame() {
-        boolean isMine;
+        isGameStopped = false;
         for (int x = 0; x < gameField.length; x++) {
             for (int y = 0; y < gameField.length; y++) {
-                setCellValue(x, y, "");
-                if (getRandomNumber(10) == 1) {
-                    isMine = true;
-                    gameField[y][x] = new GameObject(x, y, isMine);
-                    countMinesOnField++;
-                } else {
-                    isMine = false;
-                    gameField[y][x] = new GameObject(x, y, isMine);
-                }
-                setCellColor(x, y, Color.GRAY);
+                gameField[y][x] = new GameObject(x, y, false);
+                setCellValueEx(x, y, Color.GRAY, "");
             }
         }
-        countFlags = countMinesOnField;
+    }
+
+    private void setMines(int x, int y) {
+        for (int i = 0; i < gameField.length; i++) {
+            for (int j = 0; j < gameField.length; j++) {
+                if (!(gameField[j][i].x == x && gameField[j][i].y == y)) {
+                    if (getRandomNumber(10) == 1) {
+                        gameField[j][i].isMine = true;
+                        countMinesOnField++;
+                        countFlags++;
+                    }
+                }
+            }
+        }
         countMineNeighbors();
     }
 
-    public ArrayList<GameObject> getNeighbors(GameObject gameObject) {
+    private ArrayList<GameObject> getNeighbors(GameObject gameObject) {
         ArrayList<GameObject> neighbors = new ArrayList<>();
         for (int x = -1; x < 2; x++) {
             for (int y = -1; y < 2; y++) {
@@ -73,11 +83,13 @@ public class MinesweeperGame extends Game {
     }
 
     private void openTile(int x, int y) {
+        if (countClosedTiles == SIDE * SIDE) {
+            setMines(x, y);
+        }
         if (!gameField[y][x].isOpen && !gameField[y][x].isFlag && !isGameStopped) {
             gameField[y][x].isOpen = true;
             if (!gameField[y][x].isMine) {
-                score += 5;
-                setScore(score);
+                setScore(score += 5);
                 countClosedTiles--;
                 if (countClosedTiles == countMinesOnField) {
                     win();
@@ -92,6 +104,13 @@ public class MinesweeperGame extends Game {
                         }
                     }
                 } else {
+                    if (gameField[y][x].countMineNeighbors == 1) {
+                        setCellTextColor(x, y, Color.BLUE);
+                    } else if (gameField[y][x].countMineNeighbors == 2) {
+                        setCellTextColor(x, y, Color.GREEN);
+                    } else if (gameField[y][x].countMineNeighbors > 2) {
+                        setCellTextColor(x, y, Color.RED);
+                    }
                     setCellNumber(x, y, gameField[y][x].countMineNeighbors);
                     setCellColor(x, y, Color.DARKGRAY);
                 }
@@ -116,8 +135,7 @@ public class MinesweeperGame extends Game {
         isGameStopped = false;
         countClosedTiles = SIDE * SIDE;
         countMinesOnField = 0;
-        score = 0;
-        setScore(score);
+        setScore(score = 0);
         createGame();
     }
 
@@ -126,13 +144,11 @@ public class MinesweeperGame extends Game {
             if (!gameField[y][x].isFlag && countFlags > 0) {
                 countFlags--;
                 gameField[y][x].isFlag = true;
-                setCellValue(x, y, FLAG);
-                setCellColor(x, y, Color.YELLOW);
+                setCellValueEx(x, y, Color.YELLOW, FLAG);
             } else if (gameField[y][x].isFlag) {
                 countFlags++;
                 gameField[y][x].isFlag = false;
-                setCellValue(x, y, "");
-                setCellColor(x, y, Color.GRAY);
+                setCellValueEx(x, y, Color.GRAY, "");
             }
         }
     }
