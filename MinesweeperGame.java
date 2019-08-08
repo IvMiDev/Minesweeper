@@ -4,26 +4,41 @@ import com.javarush.engine.cell.*;
 import javax.swing.*;
 import java.util.ArrayList;
 
-public class MinesweeperGame extends Game {
+public class MinesweeperGame extends Game implements Runnable {
     private static final String MINE = "\uD83D\uDCA3";
     private static final String FLAG = "\uD83D\uDEA9";
     private GameObject[][] gameField;
-    private boolean isGameStopped, isNewGame;
+    private boolean isGameStopped, isNewGame, isFirstLaunch;
     private int side, countMinesOnField, countFlags, score, countClosedTiles;
 
     @Override
+    public void run() {
+        showFrame("New game!");
+    }
+
+    @Override
     public void initialize() {
-        side = 9;
-        gameField = new GameObject[side][side];
-        countClosedTiles = side * side;
-        score = 0;
-        setScreenSize(side, side);
-        createGame();
+        isFirstLaunch = true;
+        isNewGame = true;
+        run();
+        synchronized (Thread.currentThread()) {
+            try {
+                if (side == 0) {
+                    Thread.currentThread().wait();
+                }
+            } catch (InterruptedException ignored) {
+            }
+        }
     }
 
     private void createGame() {
-        isGameStopped = false;
-        //isNewGame = false;
+        isGameStopped = isNewGame = false;
+        countMinesOnField = 0;
+        countFlags = 0;
+        gameField = new GameObject[side][side];
+        countClosedTiles = side * side;
+        if (isFirstLaunch) setScreenSize(side, side);
+        setScore(score = 0);
         for (int x = 0; x < gameField.length; x++) {
             for (int y = 0; y < gameField.length; y++) {
                 gameField[y][x] = new GameObject(x, y);
@@ -89,60 +104,45 @@ public class MinesweeperGame extends Game {
                 setScore(score += 5);
                 countClosedTiles--;
                 if (countClosedTiles == countMinesOnField) {
-                    win();
+                    isFirstLaunch = false;
+                    isGameStopped = true;
+                    showFrame("Congratulations! You won!!!");
                 }
                 switch (gameField[y][x].getCountMineNeighbors()) {
-                    case 0 :
+                    case 0:
                         setCellValueEx(x, y, Color.DARKGRAY, "");
                         ArrayList<GameObject> neighbors = new ArrayList<>(getNeighbors(gameField[y][x]));
                         for (GameObject neighbor : neighbors) {
                             if (!neighbor.isOpen()) openTile(neighbor.getX(), neighbor.getY());
                         }
                         break;
-                    case 1 :
+                    case 1:
                         setCellValueEx(x, y, Color.DARKGRAY, String.valueOf(gameField[y][x].getCountMineNeighbors()));
                         setCellTextColor(x, y, Color.BLUE);
                         break;
-                    case 2 :
+                    case 2:
                         setCellValueEx(x, y, Color.DARKGRAY, String.valueOf(gameField[y][x].getCountMineNeighbors()));
                         setCellTextColor(x, y, Color.GREEN);
                         break;
-                    case 3 :
+                    case 3:
                         setCellValueEx(x, y, Color.DARKGRAY, String.valueOf(gameField[y][x].getCountMineNeighbors()));
                         setCellTextColor(x, y, Color.RED);
                         break;
-                    case 4 :
+                    case 4:
                         setCellValueEx(x, y, Color.DARKGRAY, String.valueOf(gameField[y][x].getCountMineNeighbors()));
                         setCellTextColor(x, y, Color.MIDNIGHTBLUE);
                         break;
-                    default :
+                    default:
                         setCellValueEx(x, y, Color.DARKGRAY, String.valueOf(gameField[y][x].getCountMineNeighbors()));
                         setCellTextColor(x, y, Color.DARKRED);
                 }
             } else {
                 setCellValueEx(x, y, Color.RED, MINE);
-                gameOver();
+                isFirstLaunch = false;
+                isGameStopped = true;
+                showFrame("Game Over!");
             }
         }
-    }
-
-    private void win() {
-        isGameStopped = true;
-        //showMessageDialog(Color.BLACK, "Congratulations! You won!!!", Color.GREEN, 45);
-        newGameOrRestart("Congratulations! You won!!!"); //test!!!
-    }
-
-    private void gameOver() {
-        isGameStopped = true;
-        //showMessageDialog(Color.BLACK, "Game Over!", Color.RED, 90);
-        newGameOrRestart("Game Over!"); //test!!!
-    }
-
-    private void restart() {
-        countClosedTiles = side * side;
-        countMinesOnField = 0;
-        setScore(score = 0);
-        createGame();
     }
 
     private void markTile(int x, int y) {
@@ -177,69 +177,77 @@ public class MinesweeperGame extends Game {
     All code below for test!!!
     */
 
-    private void choiceDif() {
-        JFrame frame = new JFrame("New game!");
+    private void showFrame(String title) {
+        String difficulty = "Choose difficulty level: ";
+        String restart = "Would you like to replay? ";
+        JFrame frame = new JFrame();
         JPanel panel = new JPanel();
-        JLabel label = new JLabel("Choice your difficulty");
-        JButton easy = new JButton("Easy");
-        JButton normal = new JButton("Normal");
-        JButton hard = new JButton("Hard");
+        JLabel label = new JLabel();
+        JButton b1 = new JButton();
+        JButton b2 = new JButton();
+        JButton b3 = new JButton();
         panel.add(label);
-        panel.add(easy);
-        panel.add(normal);
-        panel.add(hard);
+        if (isNewGame) {
+            frame.setTitle(title);
+            label.setText(difficulty);
+            b1.setText("Easy");
+            b2.setText("Normal");
+            b3.setText("Hard");
+            panel.add(b1);
+            panel.add(b2);
+            panel.add(b3);
+        } else {
+            frame.setTitle(title);
+            label.setText(restart);
+            b1.setText("Yes");
+            b2.setText("No");
+            panel.add(b1);
+            panel.add(b2);
+        }
         frame.add(panel);
         frame.setSize(400, 200);
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.setAlwaysOnTop(true);
         frame.setVisible(true);
-        easy.addActionListener(e -> {
-            side = 9;
+        Thread t = Thread.currentThread();
+        b1.addActionListener(e -> {
             if (isNewGame) {
+                side = 10;
+                frame.setVisible(false);
                 createGame();
+                if (isFirstLaunch) {
+                    synchronized (t) {
+                        t.notify();
+                    }
+                }
+            } else {
+                isNewGame = true;
+                frame.setVisible(false);
+                showFrame("New game!");
             }
-            else restart();
-            frame.setVisible(false);
         });
-        normal.addActionListener(e -> {
-            side = 18;
+        b2.addActionListener(e -> {
             if (isNewGame) {
+                side = 15;
+                frame.setVisible(false);
                 createGame();
+                if (isFirstLaunch) {
+                    synchronized (t) {
+                        t.notify();
+                    }
+                }
+            } else System.exit(0);
+        });
+        b3.addActionListener(e -> {
+            side = 20;
+            frame.setVisible(false);
+            createGame();
+            if (isFirstLaunch) {
+                synchronized (t) {
+                    t.notify();
+                }
             }
-            else restart();
-            frame.setVisible(false);
-        });
-        hard.addActionListener(e -> {
-            side = 36;
-            if (isNewGame) createGame();
-            else restart();
-            frame.setVisible(false);
-        });
-    }
-
-    private void newGameOrRestart(String title) {
-        JFrame frame = new JFrame(title);
-        JPanel panel = new JPanel();
-        JLabel label = new JLabel(title + "Would you like to restart?");
-        JButton yes = new JButton("Yes");
-        JButton no = new JButton("No");
-        panel.add(label);
-        panel.add(yes);
-        panel.add(no);
-        frame.add(panel);
-        frame.setVisible(true);
-        frame.setAlwaysOnTop(true);
-        frame.setSize(400, 200);
-        frame.setLocationRelativeTo(null);
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        yes.addActionListener(e -> {
-            choiceDif();
-            frame.setVisible(false);
-        });
-        no.addActionListener(e -> {
-            frame.setVisible(false);
-            System.exit(0);
         });
     }
 }
