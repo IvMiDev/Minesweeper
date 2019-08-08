@@ -4,10 +4,9 @@ class GameObject {
     private int x , y, countMineNeighbors;
     private boolean isMine, isOpen, isFlag;
 
-    GameObject(int x, int y, boolean isMine) {
+    GameObject(int x, int y) {
         this.x = x;
         this.y = y;
-        this.isMine = isMine;
     }
 
     int getX() {
