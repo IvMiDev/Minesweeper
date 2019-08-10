@@ -208,12 +208,15 @@ public class MinesweeperGame extends Game {
             panel.add(b2);
         }
         frame.add(panel);
+        frame.setIconImage(icon.getImage());
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.setSize(400, 80);
         frame.setLocationRelativeTo(null);
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        b1.setFocusable(false);
+        b2.setFocusable(false);
+        b3.setFocusable(false);
         frame.setResizable(false);
         frame.setAlwaysOnTop(true);
-        frame.setIconImage(icon.getImage());
         frame.setVisible(true);
         Thread t = Thread.currentThread();
         b1.addActionListener(event -> {
