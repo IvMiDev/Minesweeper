@@ -168,8 +168,26 @@ public class MinesweeperGame extends Game {
     }
 
     @Override
-    public void onMouseLeftClick(int x, int y) {
+    public void onMousePressed(int x, int y) {
+        if (!isGameStopped && gameField[y][x].isOpen()) {
+            ArrayList<GameObject> neighbors = new ArrayList<>(getNeighbors(gameField[y][x]));
+            for (GameObject neighbor : neighbors) {
+                if (!neighbor.isOpen() && !neighbor.isFlag()) {
+                    setCellColor(neighbor.getX(), neighbor.getY(), Color.DARKGRAY);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onMouseReleased(int x, int y) {
         if (!isGameStopped) {
+            ArrayList<GameObject> neighbors = new ArrayList<>(getNeighbors(gameField[y][x]));
+            for (GameObject neighbor : neighbors) {
+                if (!neighbor.isOpen() && !neighbor.isFlag()) {
+                    setCellColor(neighbor.getX(), neighbor.getY(), Color.GRAY);
+                }
+            }
             openTile(x, y);
         }
     }
