@@ -1,20 +1,16 @@
 package com.notfound.game;
 
 import java.util.Random;
-import javafx.animation.KeyFrame;
-import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.collections.ObservableList;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
@@ -30,66 +26,75 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import javafx.util.Duration;
 
-public class Game extends Application implements GameScreen {
+public abstract class Game extends Application implements GameScreen {
     private static Random random = new Random();
     private int width;
     private int height;
     private static int cellSize;
     private Timeline timeline = new Timeline();
-    private int timerStep = 0;
     private StackPane[][] cells;
     private Pane root;
-    private Stage primaryStage;
     private boolean showGrid = true;
     private boolean showCoordinates = false;
     private boolean showTV = true;
     private boolean isMessageShown = false;
-//    private final int APP_WIDTH = 800;
-//    private final int APP_HEIGHT = 600;
-//    private final int PADDING_TOP = 110;
-//    private final int PADDING_DOWN = 140;
-//    private final int PADDING_SIDE = 125;
     private Text scoreText;
-    private Text livesText;
     private TextFlow dialogContainer;
 
-    public Game() {
-    }
-
     public void start(Stage primaryStage) {
-        this.primaryStage = primaryStage;
         this.scoreText = new Text("Score: 0");
         this.initialize();
         Scene scene = new Scene(createContent());
-        scene.setOnMouseClicked((event) -> {
-            if (this.isMessageShown) {
-                this.isMessageShown = false;
-                this.dialogContainer.setVisible(false);
-            }
-
-            if (cellSize != 0) {
-                switch(event.getButton()) {
-                    case PRIMARY:
-                        if (this.showTV) {
-                            this.onMouseLeftClick((int)(event.getX() - 125.0D) / cellSize, (int)(event.getY() - 110.0D) / cellSize);
-                        } else {
-                            this.onMouseLeftClick((int)event.getX() / cellSize, (int)event.getY() / cellSize);
-                        }
-                        break;
-                    case SECONDARY:
-                        if (this.showTV) {
-                            this.onMouseRightClick((int)(event.getX() - 125.0D) / cellSize, (int)(event.getY() - 110.0D) / cellSize);
-                        } else {
-                            this.onMouseRightClick((int)event.getX() / cellSize, (int)event.getY() / cellSize);
-                        }
+        scene.setOnMousePressed(event -> {
+            if (event.getButton().equals(MouseButton.PRIMARY)) {
+                if (this.isMessageShown) {
+                    this.isMessageShown = false;
+                    this.dialogContainer.setVisible(false);
                 }
-
+                if (cellSize != 0) {
+                    if (this.showTV) {
+                        this.onMousePressed((int) (event.getX() - 125.0D) / cellSize, (int) (event.getY() - 110.0D) / cellSize);
+                    } else {
+                        this.onMousePressed((int) event.getX() / cellSize, (int) event.getY() / cellSize);
+                    }
+                }
             }
         });
 
-        primaryStage.setTitle("JavaRush Game");
+        scene.setOnMouseReleased(event -> {
+            if (event.getButton().equals(MouseButton.PRIMARY)) {
+                if (this.isMessageShown) {
+                    this.isMessageShown = false;
+                    this.dialogContainer.setVisible(false);
+                }
+                if (cellSize != 0) {
+                    if (this.showTV) {
+                        this.onMouseReleased((int) (event.getX() - 125.0D) / cellSize, (int) (event.getY() - 110.0D) / cellSize);
+                    } else {
+                        this.onMouseReleased((int) event.getX() / cellSize, (int) event.getY() / cellSize);
+                    }
+                }
+            }
+        });
+
+        scene.setOnMouseClicked(event -> {
+            if (event.getButton().equals(MouseButton.SECONDARY)) {
+                if (this.isMessageShown) {
+                    this.isMessageShown = false;
+                    this.dialogContainer.setVisible(false);
+                }
+                if (cellSize != 0) {
+                    if (this.showTV) {
+                        this.onMouseRightClick((int)(event.getX() - 125.0D) / cellSize, (int)(event.getY() - 110.0D) / cellSize);
+                    } else {
+                        this.onMouseRightClick((int)event.getX() / cellSize, (int)event.getY() / cellSize);
+                    }
+                }
+            }
+        });
+
+        primaryStage.setTitle("Minesweeper");
         primaryStage.setResizable(false);
         if (this.showTV) {
             primaryStage.initStyle(StageStyle.TRANSPARENT);
@@ -152,7 +157,7 @@ public class Game extends Application implements GameScreen {
         this.scoreText.setFill(Color.BLACK);
         StackPane scorePane = new StackPane(this.scoreText);
         scorePane.setBorder(new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
-        scorePane.setLayoutY(this.height * cellSize + 110 + 6);
+        scorePane.setLayoutY(this.height * cellSize + 116);
         int scoreHeight = 20;
         Rectangle rectangle;
         if (this.showGrid) {
@@ -178,15 +183,6 @@ public class Game extends Application implements GameScreen {
                 this.cells[y][x] = new StackPane(new Rectangle(), new Text(), new Text());
             }
         }
-
-    }
-
-    public int getScreenWidth() {
-        return this.width;
-    }
-
-    public int getScreenHeight() {
-        return this.height;
     }
 
     public void setCellColor(int x, int y, Color color) {
@@ -202,19 +198,10 @@ public class Game extends Application implements GameScreen {
     public Color getCellColor(int x, int y) {
         ObservableList<Node> children = this.cells[y][x].getChildren();
         if (children.size() > 0) {
-            Color color = (Color)((Rectangle)children.get(0)).getFill();
-            return color;
+            return (Color)((Rectangle)children.get(0)).getFill();
         } else {
-            return Color.YELLOWGREEN;
+            return Color.TRANSPARENT;
         }
-    }
-
-    public void showGrid(boolean isShow) {
-        this.showGrid = isShow;
-    }
-
-    public void showCoordinates(boolean isShow) {
-        this.showCoordinates = isShow;
     }
 
     public void setCellValue(int x, int y, String value) {
@@ -230,12 +217,10 @@ public class Game extends Application implements GameScreen {
                 text.setFont(Font.font(fontSize));
             } else {
                 int fontSize = cellSize / value.length();
-                text.setFont(Font.font((double)fontSize));
+                text.setFont(Font.font(fontSize));
             }
-
             text.setText(value);
         }
-
     }
 
     public String getCellValue(int x, int y) {
@@ -253,8 +238,8 @@ public class Game extends Application implements GameScreen {
             int result = 0;
 
             try {
-                result = Integer.valueOf(value);
-            } catch (NumberFormatException var6) {
+                result = Integer.parseInt(value);
+            } catch (NumberFormatException ignored) {
             }
 
             return result;
@@ -271,7 +256,6 @@ public class Game extends Application implements GameScreen {
                 text.setFill(color);
             }
         }
-
     }
 
     public Color getCellTextColor(int x, int y) {
@@ -284,23 +268,6 @@ public class Game extends Application implements GameScreen {
         }
     }
 
-    public void setTurnTimer(int timeMs) {
-        this.timeline.stop();
-        KeyFrame frame = new KeyFrame(Duration.millis((double)timeMs), (event) -> {
-            if (!this.isMessageShown) {
-                this.onTurn(++this.timerStep);
-            }
-
-        }, new KeyValue[0]);
-        this.timeline.getKeyFrames().clear();
-        this.timeline.getKeyFrames().add(frame);
-        this.timeline.play();
-    }
-
-    public void stopTurnTimer() {
-        this.timeline.stop();
-    }
-
     public int getRandomNumber(int max) {
         return random.nextInt(max);
     }
@@ -309,60 +276,11 @@ public class Game extends Application implements GameScreen {
         return random.nextInt(max - min) + min;
     }
 
-    public void initialize() {
-    }
-
-    public void onMouseLeftClick(int x, int y) {
-    }
-
-    public void onMouseRightClick(int x, int y) {
-    }
-
-//    public void onKeyPress(Key key) {
-//    }
-//
-//    public void onKeyReleased(Key key) {
-//    }
-
-    public void onTurn(int step) {
-    }
-
-//    private java.awt.Color fromFXColor(Color color) {
-//        Field[] fields = Color.class.getFields();
-//        Map<String, Color> colors = (Map)Arrays.stream(fields).filter((field) -> {
-//            return Color.class.equals(field.getType());
-//        }).collect(Collectors.toMap(Field::getName, (field) -> {
-//            try {
-//                return (Color)field.get(color);
-//            } catch (IllegalAccessException var3) {
-//                var3.printStackTrace();
-//                return null;
-//            }
-//        }));
-//        Optional<Entry<String, Color>> optionalColorEntry = colors.entrySet().stream().filter((entry) -> {
-//            return color.equals(entry.getValue());
-//        }).findFirst();
-//        com.javarush.engine.cell.Color[] result = new com.javarush.engine.cell.Color[]{com.javarush.engine.cell.Color.NONE};
-//        optionalColorEntry.ifPresent((entry) -> {
-//            result[0] = com.javarush.engine.cell.Color.valueOf((String)entry.getKey());
-//
-//        });
-//        return result[0];
-//    }
-
-//    private Color toFXColor(java.awt.Color color) {
-//        if (color == Color) {
-//            return Color.TRANSPARENT;
-//        } else {
-//            return color != null ? Color.valueOf(color.name()) : Color.BLACK;
-//        }
-//    }
-
     public void setCellTextSize(int x, int y, int size) {
         ObservableList<Node> children = this.cells[y][x].getChildren();
         if (children.size() > 1) {
             Text text = (Text)children.get(1);
-            size = size > 100 ? 100 : size;
+            size = Math.min(size, 100);
             double fontSize = (double)cellSize * ((double)size / 100.0D);
             if (!Font.font(fontSize).equals(text.getFont())) {
                 text.setFont(Font.font(fontSize));
@@ -396,41 +314,7 @@ public class Game extends Application implements GameScreen {
         this.setCellTextSize(x, y, textSize);
     }
 
-    public void showMessageDialog(Color cellColor, String message, Color textColor, int textSize) {
-        if (this.dialogContainer == null) {
-            this.dialogContainer = new TextFlow();
-            this.root.getChildren().add(this.dialogContainer);
-        }
-
-        this.dialogContainer.getChildren().clear();
-        Text messageText = new Text();
-        messageText.setFont(Font.font("Verdana", FontWeight.BOLD, (double)textSize));
-        messageText.setText(message);
-        double preferredWidth = messageText.getLayoutBounds().getWidth();
-        messageText.setFill(textColor);
-        this.dialogContainer.setLayoutX((this.root.getWidth() - preferredWidth) / 2.0D);
-        this.dialogContainer.setLayoutY(this.root.getHeight() / 2.0D - 30.0D);
-        this.dialogContainer.setBackground(new Background(new BackgroundFill[]{new BackgroundFill(cellColor, CornerRadii.EMPTY, Insets.EMPTY)}));
-        this.dialogContainer.setVisible(true);
-        this.dialogContainer.getChildren().add(messageText);
-        this.isMessageShown = true;
-    }
-
     public void setScore(int score) {
         this.scoreText.setText("Score: " + score);
     }
-
-    public void setLives(int lives) {
-        if (this.livesText == null) {
-            this.livesText = new Text();
-            this.livesText.setFont(Font.font(20.0D));
-            this.livesText.setFill(Color.ORANGE);
-            this.livesText.setY(160.0D);
-            this.livesText.setX(127.0D);
-            this.root.getChildren().addAll(new Node[]{this.livesText});
-        }
-
-        this.livesText.setText("❤: " + lives);
-    }
 }
-

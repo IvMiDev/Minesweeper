@@ -3,21 +3,14 @@ package com.notfound.game;
 import javafx.scene.paint.Color;
 
 public interface GameScreen {
-    void setScreenSize(int var1, int var2);
 
-    int getScreenWidth();
+    void setScreenSize(int x, int y);
 
-    int getScreenHeight();
+    void setCellColor(int x, int y, Color color);
 
-    void showGrid(boolean var1);
+    Color getCellColor(int x, int y);
 
-    void showCoordinates(boolean var1);
-
-    void setCellColor(int var1, int var2, Color var3);
-
-    Color getCellColor(int var1, int var2);
-
-    void setCellTextSize(int var1, int var2, int var3);
+    void setCellTextSize(int x, int y, int var3);
 
     int getCellTextSize(int var1, int var2);
 
@@ -39,24 +32,18 @@ public interface GameScreen {
 
     void setCellValueEx(int var1, int var2, Color var3, String var4, Color var5, int var6);
 
-    void showMessageDialog(Color var1, String var2, Color var3, int var4);
+    void setScore(int var);
 
-    void setScore(int var1);
+    int getRandomNumber(int num);
 
-    void setTurnTimer(int var1);
-
-    void stopTurnTimer();
-
-    int getRandomNumber(int var1);
-
-    int getRandomNumber(int var1, int var2);
+    int getRandomNumber(int num1, int num2);
 
     void initialize();
 
-    void onMouseLeftClick(int var1, int var2);
+    void onMouseRightClick(int x, int y);
 
-    void onMouseRightClick(int var1, int var2);
+    void onMousePressed(int x, int y);
 
-    void onTurn(int var1);
+    void onMouseReleased(int x, int y);
 }
 
