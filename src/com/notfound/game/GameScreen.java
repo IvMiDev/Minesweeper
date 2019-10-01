@@ -1,6 +1,7 @@
 package com.notfound.game;
 
 import javafx.scene.paint.Color;
+import java.util.ArrayList;
 
 public interface GameScreen {
 
@@ -10,29 +11,33 @@ public interface GameScreen {
 
     Color getCellColor(int x, int y);
 
-    void setCellTextSize(int x, int y, int var3);
+    void setCellTextSize(int x, int y, int size);
 
-    int getCellTextSize(int var1, int var2);
+    int getCellTextSize(int x, int y);
 
-    void setCellValue(int var1, int var2, String var3);
+    void setCellValue(int x, int y, String value);
 
-    String getCellValue(int var1, int var2);
+    String getCellValue(int x, int y);
 
-    void setCellNumber(int var1, int var2, int var3);
+    void setCellNumber(int x, int y, int num);
 
-    int getCellNumber(int var1, int var2);
+    int getCellNumber(int x, int y);
 
-    void setCellTextColor(int var1, int var2, Color var3);
+    void setCellTextColor(int x, int y, Color color);
 
-    Color getCellTextColor(int var1, int var2);
+    Color getCellTextColor(int x, int y);
 
-    void setCellValueEx(int var1, int var2, Color var3, String var4);
+    void setCellValueEx(int x, int y, Color color, int value);
 
-    void setCellValueEx(int var1, int var2, Color var3, String var4, Color var5);
+    void setCellValueEx(int x, int y, Color color, int value, Color col);
 
-    void setCellValueEx(int var1, int var2, Color var3, String var4, Color var5, int var6);
+    void setCellValueEx(int x, int y, Color color, String value);
 
-    void setScore(int var);
+    void setCellValueEx(int x, int y, Color color, String value, Color col);
+
+    void setCellValueEx(int x, int y, Color color, String value, Color col, int val);
+
+    void setScoreValue(int value);
 
     int getRandomNumber(int num);
 
@@ -45,5 +50,9 @@ public interface GameScreen {
     void onMousePressed(int x, int y);
 
     void onMouseReleased(int x, int y);
+
+    void onMouseDragged(int x, int y);
+
+    void repaint(ArrayList<GameObject> list, Color color);
 }
 
