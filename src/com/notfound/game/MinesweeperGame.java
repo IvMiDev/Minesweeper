@@ -30,6 +30,7 @@ public class MinesweeperGame extends Game {
         createGame();
     }
 
+    //TODO: Remove after adding buttons in createContent()
     private void showFrame(String title) {
         ImageIcon icon = new ImageIcon("src/com/notfound/game/resources/bomb.png");
         JFrame frame = new JFrame();
@@ -114,6 +115,7 @@ public class MinesweeperGame extends Game {
         }
     }
 
+    //TODO: Refactor this method
     private void setMines(int x, int y) {
         for (int i = 0; i < gameField.length; i++) {
             for (GameObject[] gameObject : gameField) {
@@ -146,7 +148,7 @@ public class MinesweeperGame extends Game {
         countMineNeighbors();
     }
 
-    private void getNeighborsTest(GameObject gameObject) {
+    private void getNeighbors(GameObject gameObject) {
         neighbors.clear();
         for (int x = -1; x < 2; x++) {
             for (int y = -1; y < 2; y++) {
@@ -154,32 +156,16 @@ public class MinesweeperGame extends Game {
                     if (!(gameField[gameObject.getY() + y][gameObject.getX() + x]).equals(gameObject)) {
                         neighbors.add(gameField[gameObject.getY() + y][gameObject.getX() + x]);
                     }
-                } catch (IndexOutOfBoundsException ignored) {
-                }
+                } catch (IndexOutOfBoundsException ignored) {}
             }
         }
-    }
-
-    private ArrayList<GameObject> getNeighbors(GameObject gameObject) {
-        ArrayList<GameObject> neighbors = new ArrayList<>();
-        for (int x = -1; x < 2; x++) {
-            for (int y = -1; y < 2; y++) {
-                try {
-                    if (!(gameField[gameObject.getY() + y][gameObject.getX() + x]).equals(gameObject)) {
-                        neighbors.add(gameField[gameObject.getY() + y][gameObject.getX() + x]);
-                    }
-                } catch (IndexOutOfBoundsException ignored) {
-                }
-            }
-        }
-        return neighbors;
     }
 
     private void countMineNeighbors() {
         for (int x = 0; x < gameField.length; x++) {
             for (GameObject[] gameObject : gameField) {
                 if (!gameObject[x].isMine()) {
-                    getNeighborsTest(gameObject[x]);
+                    getNeighbors(gameObject[x]);
                     for (GameObject neighbor : neighbors) {
                         if (neighbor.isMine()) {
                             gameObject[x].setCountMineNeighbors(gameObject[x].getCountMineNeighbors() + 1);
@@ -207,13 +193,13 @@ public class MinesweeperGame extends Game {
             switch (gameField[y][x].getCountMineNeighbors()) {
                 case 0:
                     setCellValueEx(x, y, Color.DARKGRAY, "");
-                    ArrayList<GameObject> neighbors = new ArrayList<>(getNeighbors(gameField[y][x]));
+                    getNeighbors(gameField[y][x]);
+                    ArrayList<GameObject> neighbors = new ArrayList<>(this.neighbors);
                     for (GameObject neighbor : neighbors) {
                         if (neighbor.isFlag()) {
                             neighbor.setFlag(false);
                             setCountFlags(getCountFlags() + 1);
-                        }
-                        if (!neighbor.isOpen()) openTile(neighbor.getX(), neighbor.getY());
+                        } else if (!neighbor.isOpen()) openTile(neighbor.getX(), neighbor.getY());
                     }
                     break;
                 case 1:
@@ -272,8 +258,8 @@ public class MinesweeperGame extends Game {
                     if (!gameField[y][x].isOpen()) {
                         setCellColor(x, y, Color.DARKGRAY);
                     } else {
-                        getNeighborsTest(gameField[y][x]);
-                        repaint(neighbors, Color.DARKGRAY);
+                        getNeighbors(gameField[y][x]);
+                        repaintNeighbors(neighbors, Color.DARKGRAY);
                     }
                 }
             }
@@ -284,15 +270,13 @@ public class MinesweeperGame extends Game {
     public void onMouseReleased(int x, int y) {
         if (!isInGame(x, y)) {
             repaintAll();
-        } else {
-            if (!isGameStopped()) {
-                if (!gameField[y][x].isFlag()) {
-                    if (gameField[y][x].isOpen()) {
-                        getNeighborsTest(gameField[y][x]);
-                        repaint(neighbors, Color.GRAY);
-                    } else {
-                        openTile(x, y);
-                    }
+        } else if (!isGameStopped()) {
+            if (!gameField[y][x].isFlag()) {
+                if (gameField[y][x].isOpen()) {
+                    getNeighbors(gameField[y][x]);
+                    repaintNeighbors(neighbors, Color.GRAY);
+                } else {
+                    openTile(x, y);
                 }
             }
         }
@@ -304,14 +288,14 @@ public class MinesweeperGame extends Game {
             if (getX() != x || getY() != y) {
                 if (!gameField[getY()][getX()].isFlag()) {
                     if (gameField[getY()][getX()].isOpen()) {
-                        getNeighborsTest(gameField[getY()][getX()]);
-                        repaint(neighbors, Color.GRAY);
+                        getNeighbors(gameField[getY()][getX()]);
+                        repaintNeighbors(neighbors, Color.GRAY);
                     } else setCellColor(getX(), getY(), Color.GRAY);
                 }
                 if (!gameField[y][x].isFlag()) {
                     if (gameField[y][x].isOpen()) {
-                        getNeighborsTest(gameField[y][x]);
-                        repaint(neighbors, Color.DARKGRAY);
+                        getNeighbors(gameField[y][x]);
+                        repaintNeighbors(neighbors, Color.DARKGRAY);
                     } else setCellColor(x, y, Color.DARKGRAY);
                 }
                 setX(x);
@@ -321,8 +305,7 @@ public class MinesweeperGame extends Game {
     }
 
     @Override
-    public void repaint(ArrayList<GameObject> neighbors, Color color) {
-        this.neighbors = neighbors;
+    public void repaintNeighbors(ArrayList<GameObject> neighbors, Color color) {
         if (color.equals(Color.GRAY)) {
             for (GameObject neighbor : neighbors) {
                 if (!neighbor.isOpen() && !neighbor.isFlag()) {
