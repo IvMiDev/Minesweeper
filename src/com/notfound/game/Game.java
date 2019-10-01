@@ -46,6 +46,7 @@ public abstract class Game extends Application implements GameScreen {
         this.scoreText = new Text("Score: 0");
         this.initialize();
         Scene scene = new Scene(createContent());
+
         scene.setOnMousePressed(event -> {
             if (event.getButton().equals(MouseButton.PRIMARY)) {
                 if (this.isMessageShown) {
@@ -89,6 +90,22 @@ public abstract class Game extends Application implements GameScreen {
                         this.onMouseRightClick((int)(event.getX() - 125.0D) / cellSize, (int)(event.getY() - 110.0D) / cellSize);
                     } else {
                         this.onMouseRightClick((int)event.getX() / cellSize, (int)event.getY() / cellSize);
+                    }
+                }
+            }
+        });
+
+        scene.setOnMouseDragged(event -> {
+            if (event.getButton().equals(MouseButton.PRIMARY)) {
+                if (this.isMessageShown) {
+                    this.isMessageShown = false;
+                    this.dialogContainer.setVisible(false);
+                }
+                if (cellSize != 0) {
+                    if (this.showTV) {
+                        this.onMouseDragged((int)(event.getX() - 125.0D) / cellSize, (int)(event.getY() - 110.0D) / cellSize);
+                    } else {
+                        this.onMouseDragged((int)event.getX() / cellSize, (int)event.getY() / cellSize);
                     }
                 }
             }
@@ -304,8 +321,18 @@ public abstract class Game extends Application implements GameScreen {
         this.setCellColor(x, y, cellColor);
     }
 
+    public void setCellValueEx(int x, int y, Color cellColor, int cellNumber) {
+        this.setCellColor(x, y, cellColor);
+        this.setCellNumber(x, y, cellNumber);
+    }
+
     public void setCellValueEx(int x, int y, Color cellColor, String value, Color textColor) {
         this.setCellValueEx(x, y, cellColor, value);
+        this.setCellTextColor(x, y, textColor);
+    }
+
+    public void setCellValueEx(int x, int y, Color cellColor, int cellNumber, Color textColor) {
+        this.setCellValueEx(x, y, cellColor, cellNumber);
         this.setCellTextColor(x, y, textColor);
     }
 
@@ -314,7 +341,7 @@ public abstract class Game extends Application implements GameScreen {
         this.setCellTextSize(x, y, textSize);
     }
 
-    public void setScore(int score) {
+    public void setScoreValue(int score) {
         this.scoreText.setText("Score: " + score);
     }
 }
