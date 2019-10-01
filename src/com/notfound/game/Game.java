@@ -123,6 +123,7 @@ public abstract class Game extends Application implements GameScreen {
         this.timeline.playFromStart();
     }
 
+    //TODO: Add "Difficulty" and restart buttons
     private Parent createContent() {
         this.root = new Pane();
         this.root.setPrefSize(this.width * cellSize + 250, this.height * cellSize + 110 + 140);
@@ -165,7 +166,7 @@ public abstract class Game extends Application implements GameScreen {
     private void createBorderImage() {
         ImageView imageView = new ImageView(new Image("com/notfound/game/resources/screen.png"));
         imageView.setFitWidth(this.width * cellSize + 250);
-        imageView.setFitHeight(this.height * cellSize + 110 + 140);
+        imageView.setFitHeight(this.height * cellSize + 250);
         this.root.getChildren().add(imageView);
     }
 

@@ -53,6 +53,6 @@ public interface GameScreen {
 
     void onMouseDragged(int x, int y);
 
-    void repaint(ArrayList<GameObject> list, Color color);
+    void repaintNeighbors(ArrayList<GameObject> list, Color color);
 }
 
